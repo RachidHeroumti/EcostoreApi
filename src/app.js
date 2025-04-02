@@ -49,6 +49,9 @@ webpush.setVapidDetails(
 );
 
 
+app.get('/',(req,res)=>{
+ res.send('Not Found =404 ')
+})
 
 
 app.listen(PORT,()=>{
