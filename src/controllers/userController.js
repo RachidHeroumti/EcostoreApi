@@ -63,6 +63,8 @@ export const Register = async (req, res) => {
     else {
       user = new User({ firstname, lastname, email, password });
       user.save();
+
+      
       const token = generateToken(user._id, 1);
       const verificationUrl = `http://localhost:5000/api/users/verify-email/${token}`;
 

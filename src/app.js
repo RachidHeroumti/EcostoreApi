@@ -20,6 +20,8 @@ const PORT=process.env.PORT||5001 ;
 app.use(express.json());
 app.use(cors({ origin: '*' }));
 
+// app.use(express.urlencoded({ extended: false }));
+// app.use(express.static(path.join(__dirname, 'public')));
 
 connectDB();
 
@@ -31,13 +33,13 @@ app.use('/api/sections',sectionRouter)
 app.use('/api',generalRoute)
 app.use('/api/shipping',shippingRoute)
 app.use('/api',subscriptionRoute)
+
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).send("Something went wrong!");
 });
 
-//app.use(express.urlencoded({ extended: false }));
-//app.use(express.static(path.join(__dirname, 'public')));
+
 
 const VAPID_PUBLIC_KEY = "BFTbUxtdSUUeGXI83bBqKAgsT06nP6IQjdxSA6oaznE6d5UOAKLmNCbW0qVE2g5rz7DUNuYnEqaOqi6ihSbwLdc";
 const VAPID_PRIVATE_KEY = "qyhvuTxIn-yBSuw_jHJoy_VVxXVT1L8nZ_WSM_0rWPY";

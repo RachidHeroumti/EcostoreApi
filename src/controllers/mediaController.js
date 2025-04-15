@@ -52,16 +52,30 @@ export const UploadMediaToCloudinary = async (req, res) => {
 };
 
 
+
 export const getMedia = async (req, res) => {
   try {
-    const { resources } = await cloudinary.search
+    const cursor = req.query.cursor || null; 
+    const limit = parseInt(req.query.limit) || 12;
+
+    const searchQuery = cloudinary.search
       .expression("folder:Uploads")
       .sort_by("created_at", "desc")
-      .max_results(20)
-      .execute();
+      .max_results(limit);
+
+    if (cursor) {
+      searchQuery.next_cursor(cursor); 
+    }
+
+    const { resources, total_count, next_cursor } = await searchQuery.execute();
 
     if (!resources || resources.length === 0) {
-      return res.status(404).json({ message: "No media files found" });
+      return res.status(404).json({
+        message: "No media files found",
+        files: [],
+        hasMore: false,
+        nextCursor: null,
+      });
     }
 
     const mediaFiles = resources.map((file) => ({
@@ -71,9 +85,14 @@ export const getMedia = async (req, res) => {
       created_at: file.created_at,
     }));
 
+    const hasMore = !!next_cursor;
+
     return res.status(200).json({
       message: "Media files retrieved successfully",
       files: mediaFiles,
+      hasMore,
+      nextCursor: next_cursor || null, 
+      total: total_count,
     });
   } catch (error) {
     console.error("getMedia error:", error);
