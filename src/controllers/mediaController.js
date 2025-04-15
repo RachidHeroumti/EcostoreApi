@@ -1,9 +1,8 @@
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
-import fs from "fs/promises";
+import streamifier from "streamifier";
 
 dotenv.config();
-
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -11,32 +10,35 @@ cloudinary.config({
   api_secret: process.env.API_SECRET,
 });
 
-
 export const UploadMediaToCloudinary = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
     }
 
-    const uploadedFiles = await Promise.all(
-      req.files.map(async (file) => {
-        try {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: "Uploads",
-          });
-          await fs.unlink(file.path);
+    const uploadPromises = req.files.map((file) => {
+      return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "Uploads" },
+          (error, result) => {
+            if (error) {
+              console.error("Cloudinary upload error:", error);
+              return reject(error);
+            }
 
-          return {
-            public_id: result.public_id,
-            url: result.secure_url,
-            format: result.format,
-          };
-        } catch (uploadError) {
-          console.error("Cloudinary upload error:", uploadError);
-          throw uploadError;
-        }
-      })
-    );
+            resolve({
+              public_id: result.public_id,
+              url: result.secure_url,
+              format: result.format,
+            });
+          }
+        );
+
+        streamifier.createReadStream(file.buffer).pipe(uploadStream);
+      });
+    });
+
+    const uploadedFiles = await Promise.all(uploadPromises);
 
     return res.status(200).json({
       message: "Files uploaded successfully",
@@ -50,7 +52,6 @@ export const UploadMediaToCloudinary = async (req, res) => {
     });
   }
 };
-
 
 
 export const getMedia = async (req, res) => {
