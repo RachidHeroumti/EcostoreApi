@@ -1,10 +1,11 @@
-import User from "../models/User.js";
+
 import dotenv from "dotenv";
 import generateToken from "../config/generateToken.js";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import VerificationTemplate from "../templates/verficationTemplate.js";
 import logger from "../tools/logger.js";
+import User from "../models/User.js";
 
 dotenv.config();
 
@@ -105,9 +106,11 @@ export const login = async (req, res) => {
       }
       res.status(200).json({
         id: user._id,
-        name: user.username,
+        firstname: user.firstname,
+        lastname :user.lastname,
         email: user.email,
         role: user.role,
+        image : user.image,
         token: generateToken(user._id),
       });
     } catch (err) {
@@ -130,7 +133,25 @@ export const getUsers = async (req, res) => {
       .json({ message: "Server error", error: error.message });
   }
 };
+export const getUser = async(req,res)=>{
+  const {id} = req.params ;
 
+  try{
+    const user = await User.findById(id) ;
+    if(!user )return res.status(404).json({message : 'user not found'})
+    res.status(200).json({
+      id: user._id,
+      firstname: user.firstname,
+      lastname :user.lastname,
+      email: user.email,
+      role: user.role,
+      image : user.image
+    });
+  }catch(err){
+  console.log("🚀 ~ getUser ~ err:", err)
+
+  }
+}
 export const updateUserRoleByCeo = async (req, res) => {
   const { id } = req.params;
   console.log("🚀 ~ updateUserRoleByCeo ~ id:", id)
