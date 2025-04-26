@@ -121,10 +121,8 @@ export const login = async (req, res) => {
 };
 
 export const getUsers = async (req, res) => {
-  const query = req.query;
-
   try {
-    const users = await User.find(query);
+    const users = await User.find({ role: { $ne: 'ceo' } });
     res.status(200).json({ users });
   } catch (error) {
     logger.error("🚀 ~ getUsers ~ error:", error);
@@ -133,6 +131,8 @@ export const getUsers = async (req, res) => {
       .json({ message: "Server error", error: error.message });
   }
 };
+
+;
 export const getUser = async(req,res)=>{
   const {id} = req.params ;
 
